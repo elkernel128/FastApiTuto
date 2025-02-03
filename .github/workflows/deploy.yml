@@ -2,7 +2,9 @@ name: Deploy to AWS with Terraform
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - staging
 
 env:
   AWS_REGION: us-east-1
@@ -10,7 +12,8 @@ env:
   ECS_SERVICE: chatbot-service
   ECS_CLUSTER: chatbot-cluster
   CONTAINER_NAME: chatbot-container
-  TF_WORKSPACE: production
+  # Set workspace based on branch
+  TF_WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
 jobs:
   deploy:
@@ -62,16 +65,25 @@ jobs:
       - name: Terraform Init and Workspace
         working-directory: ./terraform
         run: |
-          terraform init
-          terraform workspace list || terraform workspace new production
-          terraform workspace select production
+          # First init without backend to setup local state
+          terraform init -backend=false
+
+          # Create workspace locally first
+          terraform workspace new ${TF_WORKSPACE} || true
+
+          # Now init with backend and migrate state
+          terraform init -force-copy
+
+          # Ensure correct workspace is selected
+          terraform workspace select ${TF_WORKSPACE}
         env:
-          TF_WORKSPACE: production
-          TF_IN_AUTOMATION: true
+          TF_IN_AUTOMATION: "true"
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform plan -var-file="terraform.tfvars"
+        run: terraform plan -var-file="${TF_WORKSPACE}.tfvars"
         env:
           TF_VAR_image_tag: ${{ github.sha }}
           TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
@@ -80,8 +92,8 @@ jobs:
 
       - name: Terraform Apply
         working-directory: ./terraform
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+        run: terraform apply -auto-approve -var-file="${TF_WORKSPACE}.tfvars"
         env:
           TF_VAR_image_tag: ${{ github.sha }}
           TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
