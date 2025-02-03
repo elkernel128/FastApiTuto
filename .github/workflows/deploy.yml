@@ -15,6 +15,10 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    # Add environment specification
+    environment: production
+
     steps:
       - uses: actions/checkout@v2
 
@@ -33,12 +37,12 @@ jobs:
       - name: Build Docker image
         run: docker build -t chatbot-api:${{ github.sha }} .
 
-      # Initialize and apply backend infrastructure first
-      - name: Initialize Backend Infrastructure
-        working-directory: ./terraform/backend
-        run: |
-          terraform init
-          terraform apply -auto-approve
+      # Remove the backend infrastructure step as it should be set up separately
+      # - name: Initialize Backend Infrastructure
+      #   working-directory: ./terraform/backend
+      #   run: |
+      #     terraform init
+      #     terraform apply -auto-approve
 
       - name: Terraform Init
         working-directory: ./terraform
@@ -49,7 +53,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform plan
+        run: terraform plan -var-file="terraform.tfvars"
         env:
           TF_VAR_image_tag: ${{ github.sha }}
           TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
@@ -58,18 +62,16 @@ jobs:
 
       - name: Terraform Apply
         working-directory: ./terraform
-        run: terraform apply -auto-approve
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
         env:
           TF_VAR_image_tag: ${{ github.sha }}
           TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           TF_VAR_supabase_url: ${{ secrets.SUPABASE_URL }}
           TF_VAR_supabase_key: ${{ secrets.SUPABASE_KEY }}
 
-      - name: Setup Terraform Variables
+      # Remove the problematic sed commands as they're trying to use undefined variables
+      - name: Copy tfvars file
         run: |
           cd terraform
           cp example.tfvars terraform.tfvars
-          # Update terraform.tfvars with actual VPC and subnet IDs
-          sed -i "s/chatbot-vpc/${aws_vpc.main.id}/g" terraform.tfvars
-          sed -i "s/chatbot-public-1/${aws_subnet.public[0].id}/g" terraform.tfvars
-          sed -i "s/chatbot-public-2/${aws_subnet.public[1].id}/g" terraform.tfvars
