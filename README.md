@@ -6,4 +6,4 @@
 
 ### With Virtual Environment (recommended for development)
 
-supabase database pass: qyrtuj-xogbi3-Boggax
+<!-- supabase database pass: qyrtuj-xogbi3-Boggax -->
