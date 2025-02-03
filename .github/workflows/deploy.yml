@@ -62,9 +62,9 @@ jobs:
       - name: Terraform Init and Workspace
         working-directory: ./terraform
         run: |
+          terraform init
           terraform workspace list || terraform workspace new production
           terraform workspace select production
-          terraform init
         env:
           TF_WORKSPACE: production
           TF_IN_AUTOMATION: true
