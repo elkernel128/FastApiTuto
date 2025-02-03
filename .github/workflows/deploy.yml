@@ -45,7 +45,13 @@ jobs:
         working-directory: ./terraform/backend
         run: |
           terraform init
-          terraform apply -auto-approve
+          # Check if S3 bucket exists
+          if aws s3 ls "s3://chatbot-terraform-state-bucket" 2>&1 | grep -q 'NoSuchBucket'; then
+            echo "Creating backend infrastructure..."
+            terraform apply -auto-approve
+          else
+            echo "Backend infrastructure already exists, skipping creation..."
+          fi
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

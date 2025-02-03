@@ -4,6 +4,12 @@ provider "aws" {
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "chatbot-terraform-state-bucket"
+  force_destroy = false
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = all
+  }
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state" {
@@ -31,6 +37,11 @@ resource "aws_dynamodb_table" "terraform_locks" {
   attribute {
     name = "LockID"
     type = "S"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = all
   }
 }
 
