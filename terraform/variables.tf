@@ -3,15 +3,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "vpc_id" {
-  description = "VPC ID where resources will be created"
-}
-
-variable "subnet_ids" {
-  description = "Subnet IDs where resources will be created"
-  type        = list(string)
-}
-
 variable "image_tag" {
   description = "Docker image tag to deploy"
 }

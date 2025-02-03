@@ -3,14 +3,14 @@ resource "aws_lb" "main" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb.id]
-  subnets           = var.subnet_ids
+  subnets           = aws_subnet.public[*].id
 }
 
 resource "aws_lb_target_group" "app" {
   name        = "chatbot-target-group"
   port        = 8000
   protocol    = "HTTP"
-  vpc_id      = var.vpc_id
+  vpc_id      = aws_vpc.main.id
   target_type = "ip"
 
   health_check {
