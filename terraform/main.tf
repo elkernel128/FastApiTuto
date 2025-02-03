@@ -21,7 +21,7 @@ resource "null_resource" "push_image" {
 }
 
 resource "aws_ecs_cluster" "main" {
-  name = "chatbot-cluster"
+  name = "chatbot-cluster-${var.environment}"
 }
 
 resource "aws_ecs_task_definition" "app" {
@@ -74,7 +74,7 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 resource "aws_ecs_service" "main" {
-  name            = "chatbot-service"
+  name            = "chatbot-service-${var.environment}"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = 1

@@ -19,4 +19,9 @@ variable "supabase_url" {
 variable "supabase_key" {
   description = "Supabase Key"
   sensitive   = true
+}
+
+variable "environment" {
+  description = "Environment (production/staging)"
+  type        = string
 } 
