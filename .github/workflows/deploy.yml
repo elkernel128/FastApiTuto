@@ -64,3 +64,12 @@ jobs:
           TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           TF_VAR_supabase_url: ${{ secrets.SUPABASE_URL }}
           TF_VAR_supabase_key: ${{ secrets.SUPABASE_KEY }}
+
+      - name: Setup Terraform Variables
+        run: |
+          cd terraform
+          cp example.tfvars terraform.tfvars
+          # Update terraform.tfvars with actual VPC and subnet IDs
+          sed -i "s/chatbot-vpc/${aws_vpc.main.id}/g" terraform.tfvars
+          sed -i "s/chatbot-public-1/${aws_subnet.public[0].id}/g" terraform.tfvars
+          sed -i "s/chatbot-public-2/${aws_subnet.public[1].id}/g" terraform.tfvars
