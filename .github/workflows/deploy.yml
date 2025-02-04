@@ -73,19 +73,23 @@ jobs:
           terraform init \
             -backend=true \
             -backend-config="bucket=chatbot-terraform-state-bucket" \
-            -backend-config="key=${TF_WORKSPACE}/terraform.tfstate" \
+            -backend-config="key=env_${TF_WORKSPACE}/terraform.tfstate" \
             -backend-config="region=us-east-1" \
             -backend-config="encrypt=true" \
-            -input=false
+            -input=false \
+            -no-color
 
-          # Create new workspace non-interactively (if it doesn't exist)
-          terraform workspace new ${TF_WORKSPACE} || true
+          # Force create default workspace first (required for workspace operations)
+          terraform workspace new default -no-color || terraform workspace select default -no-color
 
-          # Select the workspace
-          terraform workspace select ${TF_WORKSPACE}
+          # Now create and select the target workspace
+          echo "Creating/selecting workspace: ${TF_WORKSPACE}"
+          terraform workspace new "${TF_WORKSPACE}" -no-color || \
+          terraform workspace select "${TF_WORKSPACE}" -no-color
         env:
           TF_IN_AUTOMATION: "true"
           TF_INPUT: "0"
+          TERRAFORM_BACKEND_CONFIG_FILE: "backend.tf"
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
