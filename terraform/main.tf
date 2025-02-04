@@ -1,5 +1,13 @@
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = {
+      Environment = var.environment
+      Project     = "chatbot"
+      ManagedBy   = "terraform"
+    }
+  }
 }
 
 resource "aws_ecr_repository" "chatbot" {
