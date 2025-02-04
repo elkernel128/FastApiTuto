@@ -74,16 +74,20 @@ jobs:
             -backend=true \
             -backend-config="bucket=chatbot-terraform-state-bucket" \
             -backend-config="key=${TF_WORKSPACE}/terraform.tfstate" \
-            -backend-config="region=${AWS_REGION}" \
-            -backend-config="encrypt=true"
+            -backend-config="region=us-east-1" \
+            -backend-config="encrypt=true" \
+            -input=false
 
-          # Create workspace if it doesn't exist and then select it
-          terraform workspace select ${TF_WORKSPACE} || terraform workspace new ${TF_WORKSPACE}
+          # Create new workspace non-interactively (if it doesn't exist)
+          terraform workspace new ${TF_WORKSPACE} || true
+
+          # Select the workspace
+          terraform workspace select ${TF_WORKSPACE}
         env:
           TF_IN_AUTOMATION: "true"
+          TF_INPUT: "0"
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ env.AWS_REGION }}
 
       - name: Terraform Plan
         working-directory: ./terraform
