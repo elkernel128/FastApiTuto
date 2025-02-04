@@ -71,8 +71,8 @@ jobs:
           # Create workspace locally first
           terraform workspace new ${TF_WORKSPACE} || true
 
-          # Now init with backend and migrate state
-          terraform init -force-copy
+          # Now init with backend, reconfigure and migrate state
+          terraform init -reconfigure -force-copy
 
           # Ensure correct workspace is selected
           terraform workspace select ${TF_WORKSPACE}
